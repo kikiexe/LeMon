@@ -1,0 +1,80 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { db } from '#/db/index'
+import { donation } from '#/db/schema'
+import { censorMessageServerFn } from '../../../lib/ai-utils'
+import { env } from '#/env'
+
+export const Route = createFileRoute('/api/donation/record')({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const { slug, senderAddress, senderName, amount, txHash, message } =
+            await request.json()
+
+          const targetProfile = await db.query.profile.findFirst({
+            where: (p, { eq }) => eq(p.slug, slug),
+          })
+
+          if (!targetProfile) {
+            return new Response(
+              JSON.stringify({ error: 'Profile not found' }),
+              { status: 404 },
+            )
+          }
+
+          let filteredMessage = message
+          if (message) {
+            try {
+              const result = await (censorMessageServerFn as any)({
+                data: { message },
+              })
+              filteredMessage = result.censored
+            } catch (err) {
+              console.error('[AI Shield] Failed:', err)
+            }
+          }
+
+          const donationData = {
+            profileId: targetProfile.id,
+            senderAddress: senderAddress,
+            senderName: senderName || 'Anonymous',
+            amount: amount,
+            txHash: txHash,
+            message: filteredMessage,
+            currency: 'MON',
+          }
+
+          const [newDonation] = await db
+            .insert(donation)
+            .values(donationData)
+            .returning()
+
+          // Real-time trigger via Ably
+          try {
+            const { default: Ably } = await import('ably')
+            const ably = new Ably.Rest(env.ABLY_API_KEY)
+            const channel = ably.channels.get(
+              `donations:${targetProfile.walletAddress}`,
+            )
+            await channel.publish('new-donation', newDonation)
+            console.log(
+              `[Ably] Published donation to channel: donations:${targetProfile.walletAddress}`,
+            )
+          } catch (ablyErr) {
+            console.error('[Ably] Publish failed:', ablyErr)
+          }
+
+          return new Response(JSON.stringify({ ok: true }), {
+            headers: { 'Content-Type': 'application/json' },
+          })
+        } catch (e: any) {
+          console.error('[Donation API] Error:', e)
+          return new Response(JSON.stringify({ error: e.message }), {
+            status: 500,
+          })
+        }
+      },
+    },
+  },
+})

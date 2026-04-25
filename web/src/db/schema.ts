@@ -10,6 +10,7 @@ import {
   jsonb,
   uuid,
 } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
 export const users = pgTable('users', {
   walletAddress: varchar('wallet_address', { length: 42 }).primaryKey(),
@@ -111,3 +112,19 @@ export const votes = pgTable('votes', {
 }, (table) => [
   index('voting_voter_idx').on(table.votingId, table.voterAddress)
 ])
+
+export const profileRelations = relations(profile, ({ one, many }) => ({
+  payoutSettings: one(payoutSettings, {
+    fields: [profile.id],
+    references: [payoutSettings.profileId],
+  }),
+  donations: many(donation),
+  overlayConfigs: many(overlayConfigs),
+}))
+
+export const payoutSettingsRelations = relations(payoutSettings, ({ one }) => ({
+  profile: one(profile, {
+    fields: [payoutSettings.profileId],
+    references: [profile.id],
+  }),
+}))

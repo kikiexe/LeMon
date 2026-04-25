@@ -5,7 +5,7 @@
 - [x] Task: Implement Monad RPC verification utility (a4fb7f2)
     - [ ] Create a utility in `web/src/lib/monad-utils.ts` to check transaction status using `viem`.
     - [ ] Add unit tests for the verification utility.
-- [ ] Task: Integrate verification into `record.ts` API
+- [x] Task: Integrate verification into `record.ts` API (3835784)
     - [ ] Update `web/src/routes/api/donation/record.ts` to call the verification utility.
     - [ ] Update database schema if needed to track transaction state.
     - [ ] Write integration tests for the `record` endpoint.

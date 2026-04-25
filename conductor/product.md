@@ -12,6 +12,7 @@ LeMon is a decentralized donation and live-stream overlay platform built on the 
 
 ## Key Features
 - **Web3 Tipping:** Seamless, low-fee crypto donations directly on the Monad network.
+- **Verified Transactions:** Server-side on-chain verification for all donations to ensure security and prevent fake alerts.
 - **Live Overlays:** Real-time interactive widgets (Alerts, Goals) that respond to donation events.
 - **Dashboard:** A comprehensive "Command Center" for creators to manage settings, view history, and monitor stats.
 - **Public Profiles:** Customizable landing pages (`/u/username`) for creators to collect donations.

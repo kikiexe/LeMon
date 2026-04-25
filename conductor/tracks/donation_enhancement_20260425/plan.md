@@ -1,6 +1,7 @@
 # Implementation Plan: Enhance donation recording with Monad network verification and robust alert delivery
 
 ## Phase 1: Verification Logic
+- [x] Task: Database Schema Update (f2ce764)
 - [ ] Task: Implement Monad RPC verification utility
     - [ ] Create a utility in `web/src/lib/monad-utils.ts` to check transaction status using `viem`.
     - [ ] Add unit tests for the verification utility.

@@ -9,26 +9,26 @@
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### 💎 Smart Staking Architecture (TipFyVault)
+### Smart Staking Architecture (TipFyVault)
 *   **Dual-Mode Donations**: Supports both direct "Pass-through" transfers and "Vault-based" staking.
 *   **Yield Generation**: Integrated with Aave V3 to provide a stable **3.5% APR** on staked donations.
 *   **Time-Weighted Claiming**: Fair yield calculation using weighted average timestamps for streamers who maintain long-term holdings.
 
-### 🎥 Streamer Command Center
+### Streamer Command Center
 *   **Real-time Alerts**: Low-latency donation notifications powered by **Ably**.
 *   **Overlay Customization**: Fully configurable alerts, soundboards, leaderboards, and running text overlays.
 *   **QR Code Integration**: Seamless on-chain donation flow via QR codes.
 
-### 🛡️ Secure & Scalable
+### Secure & Scalable
 *   **Monad Native**: Optimized for Monad's high-throughput EVM.
 *   **Drizzle & Neon**: Type-safe database interactions with Neon Serverless PostgreSQL.
 *   **T3-Style Env Validation**: Robust environment variable handling for production reliability.
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 | :--- | :--- |
@@ -40,7 +40,7 @@
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```bash
 ├── contract/       # Foundry project (Smart Contracts & Deployment scripts)
@@ -56,7 +56,7 @@
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### 1. Smart Contract (Foundry)
 ```bash
@@ -88,7 +88,7 @@ VITE_WC_PROJECT_ID=
 
 ---
 
-## 📜 Smart Contract Addresses (Monad Testnet)
+## Smart Contract Addresses (Monad Testnet)
 
 | Contract | Address |
 | :--- | :--- |
@@ -98,7 +98,7 @@ VITE_WC_PROJECT_ID=
 
 ---
 
-## ⚖️ License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 

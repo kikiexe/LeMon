@@ -1,17 +1,23 @@
 import { createServerFn } from '@tanstack/react-start'
 import { eq, and, desc } from 'drizzle-orm'
 import crypto from 'node:crypto'
+import { z } from 'zod'
 
 export const getOverlayConfigServerFn = createServerFn({
   method: 'GET',
-}).handler(async ({ data: { type } }) => {
+})
+  .inputValidator(z.string())
+  .handler(async ({ data: type }: { data: string }) => {
     const { getOverlayConfig } = await import('./db-actions.server')
-    return await getOverlayConfig(type)
+    const config = await getOverlayConfig(type)
+    return config ? (config as any) : undefined
   })
 
 export const getPublicOverlayConfigServerFn = createServerFn({
   method: 'GET',
-}).handler(async ({ data: { type, address } }) => {
+})
+  .inputValidator(z.object({ type: z.string(), address: z.string() }))
+  .handler(async ({ data: { type, address } }: { data: { type: string, address: string } }) => {
     const { db } = await import('#/db/index')
     const { overlayConfigs, profile } = await import('#/db/schema')
 
@@ -27,12 +33,14 @@ export const getPublicOverlayConfigServerFn = createServerFn({
       ),
     })
 
-    return config || null
+    return config ? (config as any) : null
   })
 
 export const getLatestDonationServerFn = createServerFn({
   method: 'GET',
-}).handler(async ({ data: { address } }) => {
+})
+  .inputValidator(z.object({ address: z.string() }))
+  .handler(async ({ data: { address } }: { data: { address: string } }) => {
     const { db } = await import('#/db/index')
     const { donation, profile } = await import('#/db/schema')
 
@@ -65,42 +73,56 @@ export const getDashboardStatsServerFn = createServerFn({
 
 export const saveOverlayConfigServerFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data: { type, config, isEnabled } }) => {
+})
+  .inputValidator(z.object({ type: z.string(), config: z.any(), isEnabled: z.boolean().optional() }))
+  .handler(async ({ data: { type, config, isEnabled } }: { data: { type: string, config: any, isEnabled?: boolean } }) => {
     const { saveOverlayConfig } = await import('./db-actions.server')
     return await saveOverlayConfig(type, config, isEnabled)
   })
 
 export const saveVotingServerFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }) => {
+})
+  .inputValidator(z.any())
+  .handler(async ({ data }: { data: any }) => {
     const { saveVoting } = await import('./db-actions.server')
-    return await saveVoting(data)
+    const res = await saveVoting(data)
+    return res as any
   })
 
 export const getActiveVotingServerFn = createServerFn({
   method: 'GET',
-}).handler(async ({ data: { profileId } }) => {
+})
+  .inputValidator(z.object({ profileId: z.number() }))
+  .handler(async ({ data: { profileId } }: { data: { profileId: number } }) => {
     const { getActiveVoting } = await import('./db-actions.server')
-    return await getActiveVoting(profileId)
+    const res = await getActiveVoting(profileId)
+    return res ? (res as any) : undefined
   })
 
 export const submitVoteServerFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data: { votingId, optionIndex, voterAddress } }) => {
+})
+  .inputValidator(z.object({ votingId: z.number(), optionIndex: z.number(), voterAddress: z.string() }))
+  .handler(async ({ data: { votingId, optionIndex, voterAddress } }: { data: { votingId: number, optionIndex: number, voterAddress: string } }) => {
     const { submitVote } = await import('./db-actions.server')
     return await submitVote(votingId, optionIndex, voterAddress)
   })
 
 export const getVotingResultsServerFn = createServerFn({
   method: 'GET',
-}).handler(async ({ data: { votingId } }) => {
+})
+  .inputValidator(z.object({ votingId: z.number() }))
+  .handler(async ({ data: { votingId } }: { data: { votingId: number } }) => {
     const { getVotingResults } = await import('./db-actions.server')
     return await getVotingResults(votingId)
   })
 
 export const getLeaderboardServerFn = createServerFn({
   method: 'GET',
-}).handler(async ({ data: { profileId, timeRange, startDate } }) => {
+})
+  .inputValidator(z.object({ profileId: z.number(), timeRange: z.string(), startDate: z.string().optional() }))
+  .handler(async ({ data: { profileId, timeRange, startDate } }: { data: { profileId: number, timeRange: string, startDate?: string } }) => {
     const { getLeaderboardData } = await import('./db-actions.server')
     return await getLeaderboardData(profileId, timeRange, startDate)
   })

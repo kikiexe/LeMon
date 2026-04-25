@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
 
 export const checkProfileServerFn = createServerFn({ method: 'GET' })
   .handler(async () => {
@@ -7,7 +8,8 @@ export const checkProfileServerFn = createServerFn({ method: 'GET' })
   })
 
 export const getPublicProfileServerFn = createServerFn({ method: 'GET' })
-  .handler(async ({ data: username }) => {
+  .inputValidator(z.string())
+  .handler(async ({ data: username }: { data: string }) => {
     const { db } = await import('#/db/index')
     
     try {

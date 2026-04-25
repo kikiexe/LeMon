@@ -3,23 +3,12 @@ import { db } from '#/db/index'
 import { donation, profile, sessions, payoutSettings, overlayConfigs, voting, votes } from '#/db/schema'
 import { eq, and, desc, sql, count, countDistinct } from 'drizzle-orm'
 
-export async function saveVoting(data: any) {
+export async function saveVoting(data: { title: string, options: string[], startDate: string, endDate: string }) {
   const userContext = await getSessionUser()
   if (!userContext || !userContext.profile) throw new Error('Unauthorized')
 
-  // Robust date parsing
-  const parseDate = (dateStr: string, timeStr: string, fallbackTime: string) => {
-    if (!dateStr) return new Date()
-    try {
-      const d = new Date(`${dateStr}T${timeStr || fallbackTime}`)
-      return isNaN(d.getTime()) ? new Date() : d
-    } catch (e) {
-      return new Date()
-    }
-  }
-
-  const startAt = parseDate(data.startDate, data.startTime, '00:00:00')
-  const endAt = parseDate(data.endDate, data.endTime, '23:59:59')
+  const startAt = new Date(data.startDate)
+  const endAt = new Date(data.endDate)
 
   const existing = await db.query.voting.findFirst({
     where: and(

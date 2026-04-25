@@ -3,6 +3,7 @@ import { db } from '#/db/index'
 import { donation } from '#/db/schema'
 import { censorMessageServerFn } from '../../../lib/ai-utils'
 import { env } from '#/env'
+import { verifyMonadTransaction } from '#/lib/monad-utils'
 
 export const Route = createFileRoute('/api/donation/record')({
   server: {
@@ -20,6 +21,19 @@ export const Route = createFileRoute('/api/donation/record')({
             return new Response(
               JSON.stringify({ error: 'Profile not found' }),
               { status: 404 },
+            )
+          }
+
+          console.log(`[Donation API] Verifying transaction: ${txHash}`)
+          const verification = await verifyMonadTransaction(txHash)
+
+          if (verification.status !== 'confirmed') {
+            return new Response(
+              JSON.stringify({
+                error: `Transaction verification failed: status is ${verification.status}`,
+                verification,
+              }),
+              { status: 400 },
             )
           }
 
@@ -43,6 +57,8 @@ export const Route = createFileRoute('/api/donation/record')({
             txHash: txHash,
             message: filteredMessage,
             currency: 'MON',
+            status: verification.status,
+            blockNumber: verification.blockNumber,
           }
 
           const [newDonation] = await db
@@ -64,9 +80,12 @@ export const Route = createFileRoute('/api/donation/record')({
             console.error('[Ably] Publish failed:', ablyErr)
           }
 
-          return new Response(JSON.stringify({ ok: true }), {
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({ ok: true, donation: newDonation }),
+            {
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (e: any) {
           console.error('[Donation API] Error:', e)
           return new Response(JSON.stringify({ error: e.message }), {

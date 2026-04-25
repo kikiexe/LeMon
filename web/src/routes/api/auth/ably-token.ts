@@ -4,7 +4,7 @@ import { env } from '#/env'
 export const Route = createFileRoute('/api/auth/ably-token')({
   server: {
     handlers: {
-      GET: async ({ request }) => {
+      GET: async () => {
         try {
           const { default: Ably } = await import('ably')
           const client = new Ably.Rest(env.ABLY_API_KEY)

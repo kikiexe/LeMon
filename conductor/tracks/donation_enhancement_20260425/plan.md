@@ -15,6 +15,6 @@
 - [x] Task: Refactor Ably publishing logic (6f9f6dd)
     - [ ] Move Ably publishing to a central utility in `web/src/lib/ably-utils.ts`.
     - [ ] Implement error handling and logging for publication failures.
-- [ ] Task: Update Overlays for Reliability
+- [x] Task: Update Overlays for Reliability (90d5773)
     - [ ] Add basic reconnection logic or status indicators to the widget page in `$type.$address.tsx`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Robust Alerts' (Protocol in workflow.md)

@@ -118,17 +118,7 @@ export const uploadToBucketServerFn = createServerFn({
   console.log('[DEBUG GCS]: Target Bucket ->', env.GCS_BUCKET_NAME)
   console.log('[DEBUG GCS]: Credentials Path ->', env.GOOGLE_APPLICATION_CREDENTIALS)
 
-  let storageOptions = {}
-  try {
-    // If it's a JSON string, parse it. Otherwise, let it be (could be a path in local dev)
-    if (env.GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
-      storageOptions = { credentials: JSON.parse(env.GOOGLE_APPLICATION_CREDENTIALS) }
-    }
-  } catch (e) {
-    console.error('[GCS Error]: Failed to parse credentials JSON', e)
-  }
-
-  const storage = new Storage(storageOptions)
+  const storage = new Storage()
   const bucket = storage.bucket(env.GCS_BUCKET_NAME)
 
   const uniqueId = crypto.randomUUID()

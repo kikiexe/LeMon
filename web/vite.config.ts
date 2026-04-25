@@ -9,7 +9,7 @@ import neon from './neon-vite-plugin.ts'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   server: {
-    allowedHosts: ['brad-melissa-controlling-isp.trycloudflare.com'],
+    allowedHosts: true,
   },
   plugins: [
     devtools(),

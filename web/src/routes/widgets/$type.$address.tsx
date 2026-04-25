@@ -12,7 +12,7 @@ import {
 
 export const Route = createFileRoute('/widgets/$type/$address')({
   loader: async ({ params }) => {
-    const config = await (getPublicOverlayConfigServerFn as any)({
+    const config = await getPublicOverlayConfigServerFn({
       data: { type: params.type, address: params.address },
     })
     return { config, address: params.address, type: params.type }
@@ -42,7 +42,7 @@ function WidgetPage() {
   const refreshData = async () => {
     if (type.toUpperCase() === 'LEADERBOARD') {
       try {
-        const res = await (getLeaderboardServerFn as any)({
+        const res = await getLeaderboardServerFn({
           data: {
             profileId: config.profileId,
             timeRange: config.config.timeRange || 'ALL',
@@ -56,7 +56,7 @@ function WidgetPage() {
     } else if (type.toUpperCase() === 'RUNNING_TEXT') {
       try {
         // Reuse leaderboard data for running text (top recent)
-        const res = await (getLeaderboardServerFn as any)({
+        const res = await getLeaderboardServerFn({
           data: {
             profileId: config.profileId,
             timeRange: 'ALL',
@@ -143,7 +143,7 @@ function WidgetPage() {
     if (type.toUpperCase() === 'VOTING' && config && !votingData) {
       const fetchVoting = async () => {
         try {
-          const res = await (getActiveVotingServerFn as any)({
+          const res = await getActiveVotingServerFn({
             data: { profileId: config.profileId },
           })
           if (res) setVotingData(res)
@@ -161,7 +161,7 @@ function WidgetPage() {
     if (type.toUpperCase() === 'VOTING' && votingData) {
       const pollResults = async () => {
         try {
-          const res = await (getVotingResultsServerFn as any)({
+          const res = await getVotingResultsServerFn({
             data: { votingId: votingData.id },
           })
           setVotingResults(res)

@@ -7,7 +7,6 @@ export const checkProfileServerFn = createServerFn({ method: 'GET' })
   })
 
 export const getPublicProfileServerFn = createServerFn({ method: 'GET' })
-  .validator((d: string) => d)
   .handler(async ({ data: username }) => {
     const { db } = await import('#/db/index')
     

@@ -14,9 +14,16 @@ import {
   Lock,
   Coins,
   ArrowDownCircle,
+  Loader2,
 } from 'lucide-react'
 import { Link, Await } from '@tanstack/react-router'
-import { Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { formatEther } from 'viem'
+import { TipFyVaultABI } from '../../lib/TipFyVaultABI'
+
+// Update with real deployed address
+const TIPFY_VAULT_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 interface CommandCenterProps {
   user: any
@@ -31,13 +38,80 @@ export const CommandCenter = ({
   deferredDonations,
   isStakingEnabled,
 }: CommandCenterProps) => {
+  const { address } = useAccount()
   const chartData = [40, 70, 45, 90, 65, 80, 50, 85, 40, 60, 75, 95]
 
+  // --- Contract Reads ---
+  const { data: vaultBalance } = useReadContract({
+    address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+    abi: TipFyVaultABI,
+    functionName: 'balances',
+    args: [address as `0x${string}`],
+    query: { enabled: !!address && !!isStakingEnabled }
+  })
+
+  const { data: accruedYield } = useReadContract({
+    address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+    abi: TipFyVaultABI,
+    functionName: 'calculateYield',
+    args: [address as `0x${string}`],
+    query: { enabled: !!address && !!isStakingEnabled }
+  })
+
+  const { data: lastStakeTime } = useReadContract({
+    address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+    abi: TipFyVaultABI,
+    functionName: 'lastStakeTimestamp',
+    args: [address as `0x${string}`],
+    query: { enabled: !!address && !!isStakingEnabled }
+  })
+
+  const { data: stakeDuration } = useReadContract({
+    address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+    abi: TipFyVaultABI,
+    functionName: 'STAKE_DURATION',
+    query: { enabled: !!isStakingEnabled }
+  })
+
+  // --- Contract Writes ---
+  const { data: hash, writeContract, isPending } = useWriteContract()
+  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
+
   const handleWithdraw = () => {
-    alert(
-      'Withdrawal Protocol Initiated. Awaiting smart contract integration...',
-    )
+    if (!vaultBalance || Number(vaultBalance) === 0) {
+      alert('Vault balance is zero.')
+      return
+    }
+    writeContract({
+      address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+      abi: TipFyVaultABI,
+      functionName: 'withdraw',
+      args: [vaultBalance],
+    })
   }
+
+  const handleClaimYield = () => {
+    writeContract({
+      address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+      abi: TipFyVaultABI,
+      functionName: 'claimYield',
+    })
+  }
+
+  // --- Calculations ---
+  const maturityInfo = useMemo(() => {
+    if (!lastStakeTime || !stakeDuration || Number(lastStakeTime) === 0) return 'No Active Stake'
+    const maturityAt = Number(lastStakeTime) + Number(stakeDuration)
+    const now = Math.floor(Date.now() / 1000)
+    const diff = maturityAt - now
+    if (diff <= 0) return 'MATURED: CLAIM READY'
+    const days = Math.ceil(diff / 86400)
+    return `${days} DAYS REMAINING`
+  }, [lastStakeTime, stakeDuration])
+
+  const canClaimYield = useMemo(() => {
+    return !!(accruedYield && Number(accruedYield) > 0 && maturityInfo === 'MATURED: CLAIM READY')
+  }, [accruedYield, maturityInfo])
 
   return (
     <motion.div
@@ -130,7 +204,7 @@ export const CommandCenter = ({
                         Vault_Balance
                       </p>
                       <p className="text-4xl font-black text-white italic">
-                        0.00{' '}
+                        {vaultBalance ? formatEther(vaultBalance as bigint) : '0.00'}{' '}
                         <span className="text-xs text-neutral-500 not-italic uppercase">
                           MON
                         </span>
@@ -139,12 +213,12 @@ export const CommandCenter = ({
                     <div>
                       <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1 flex items-center gap-2">
                         <Coins size={12} className="text-green-500" />{' '}
-                        Accrued_Yield (3.5%)
+                        Accrued_Yield
                       </p>
                       <p className="text-4xl font-black text-green-500 italic">
-                        +0.00{' '}
+                        +{accruedYield ? formatEther(accruedYield as bigint) : '0.00'}{' '}
                         <span className="text-xs text-neutral-500 not-italic uppercase">
-                          Yield
+                          MON
                         </span>
                       </p>
                     </div>
@@ -153,7 +227,7 @@ export const CommandCenter = ({
                         Time_to_Maturity
                       </p>
                       <p className="text-sm font-black text-white uppercase tracking-tighter">
-                        365 Days Remaining
+                        {maturityInfo}
                       </p>
                     </div>
                   </div>
@@ -161,13 +235,20 @@ export const CommandCenter = ({
                   <div className="skew-x-5 flex gap-4 w-full md:w-auto">
                     <button
                       onClick={handleWithdraw}
-                      className="flex-1 md:flex-none px-6 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-neon-pink/20 transition-all flex items-center justify-center gap-3"
+                      disabled={isPending || isConfirming || !vaultBalance || Number(vaultBalance) === 0}
+                      className="flex-1 md:flex-none px-6 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-neon-pink/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                     >
-                      <ArrowDownCircle size={16} /> Withdraw_Principal
+                      {isPending || isConfirming ? <Loader2 className="animate-spin" size={16} /> : <ArrowDownCircle size={16} />}
+                      Withdraw_Principal
                     </button>
                     <button
-                      disabled
-                      className="flex-1 md:flex-none px-6 py-4 bg-neutral-800 text-neutral-600 text-[10px] font-black uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-3"
+                      onClick={handleClaimYield}
+                      disabled={!canClaimYield || isPending || isConfirming}
+                      className={`flex-1 md:flex-none px-6 py-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${
+                        canClaimYield 
+                        ? 'bg-green-500/10 border border-green-500/50 text-green-500 hover:bg-green-500/20' 
+                        : 'bg-neutral-800 text-neutral-600 border border-transparent cursor-not-allowed'
+                      }`}
                     >
                       <Zap size={16} /> Claim_Yield
                     </button>

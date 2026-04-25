@@ -29,7 +29,7 @@ export const Route = createFileRoute('/u/$username')({
     })
     if (!profile) throw notFound()
 
-    const activeVoting = await (getActiveVotingServerFn as any)({
+    const activeVoting = await getActiveVotingServerFn({
       data: { profileId: profile.id },
     })
 

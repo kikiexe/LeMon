@@ -1,7 +1,12 @@
 import { useForm } from '@tanstack/react-form'
 import { updatePayoutSettingsServerFn } from '../../lib/payout-utils'
-import { Wallet, ShieldCheck } from 'lucide-react'
+import { Wallet, ShieldCheck, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { TipFyVaultABI } from '../../lib/TipFyVaultABI'
+
+// Update with real deployed address
+const TIPFY_VAULT_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export const PayoutView = ({
   initialAddress,
@@ -11,6 +16,8 @@ export const PayoutView = ({
   initialStaking?: boolean
 }) => {
   const [success, setSuccess] = useState(false)
+  const { data: hash, writeContract, isPending: isTxPending } = useWriteContract()
+  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
 
   const form = useForm({
     defaultValues: {
@@ -19,6 +26,16 @@ export const PayoutView = ({
     },
     onSubmit: async ({ value }) => {
       try {
+        // 1. Update Smart Contract if status changed
+        if (value.isStakingEnabled !== initialStaking) {
+          writeContract({
+            address: TIPFY_VAULT_ADDRESS as `0x${string}`,
+            abi: TipFyVaultABI,
+            functionName: 'toggleStaking',
+            args: [value.isStakingEnabled],
+          })
+        }
+
         await (updatePayoutSettingsServerFn as any)({ data: value })
         setSuccess(true)
         setTimeout(() => setSuccess(false), 3000)
@@ -150,11 +167,12 @@ export const PayoutView = ({
 
           <button
             type="submit"
-            disabled={form.state.isSubmitting}
+            disabled={form.state.isSubmitting || isTxPending || isConfirming}
             className="w-full py-4 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] italic skew-x--10 hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            <span className="skew-x-10">
-              {form.state.isSubmitting
+            <span className="skew-x-10 flex items-center gap-2">
+              {(form.state.isSubmitting || isTxPending || isConfirming) && <Loader2 className="animate-spin" size={16} />}
+              {form.state.isSubmitting || isTxPending || isConfirming
                 ? 'Syncing_Protocols...'
                 : 'Save Configuration'}
             </span>

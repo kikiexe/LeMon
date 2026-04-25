@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
 
 export interface ModerationSettings {
   profanityEnabled: boolean
@@ -7,12 +8,21 @@ export interface ModerationSettings {
   saraEnabled: boolean
 }
 
-export const censorMessageServerFn = createServerFn({ method: 'POST' }).handler(
-  async (ctx: any) => {
-    const { message, settings } = ctx.data as {
-      message: string
-      settings: ModerationSettings
-    }
+export const censorMessageServerFn = createServerFn({
+  method: 'POST',
+})
+  .inputValidator(
+    z.object({
+      message: z.string(),
+      settings: z.object({
+        profanityEnabled: z.boolean(),
+        gamblingEnabled: z.boolean(),
+        pinjolEnabled: z.boolean(),
+        saraEnabled: z.boolean(),
+      }),
+    }),
+  )
+  .handler(async ({ data: { message, settings } }: { data: { message: string; settings: ModerationSettings } }) => {
 
     if (!message || message.trim().length === 0) return { censored: message }
 

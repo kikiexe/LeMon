@@ -53,8 +53,8 @@ export const Route = createFileRoute('/dashboard')({
 
 const NAV_ITEMS = [
   { id: 'OVERVIEW', label: 'Overview', icon: LayoutDashboard, color: 'text-neon-cyan' },
-  { id: 'TRANSACTIONS', label: 'Transaksi', icon: ArrowRightLeft, color: 'text-neon-pink' },
-  { id: 'OVERLAYS', label: 'Overlay', icon: Layers, color: 'text-white' },
+  { id: 'TRANSACTIONS', label: 'Transactions', icon: ArrowRightLeft, color: 'text-neon-pink' },
+  { id: 'OVERLAYS', label: 'Overlays', icon: Layers, color: 'text-white' },
   { id: 'SETTINGS', label: 'Settings', icon: Wallet, color: 'text-neon-cyan' },
 ]
 

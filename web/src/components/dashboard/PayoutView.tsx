@@ -30,7 +30,7 @@ export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
       <div>
         <h2 className="text-4xl font-black italic uppercase tracking-tighter">Wallet_<span className="text-neon-cyan">Settings</span></h2>
         <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2">
-          Masukkan alamat wallet tujuan untuk menerima donasi secara langsung (P2P).
+          Enter your destination wallet address to receive donations directly (P2P).
         </p>
       </div>
 
@@ -42,7 +42,7 @@ export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
         <div className="flex items-start gap-4 p-4 bg-neon-cyan/5 border border-neon-cyan/20">
           <Info size={18} className="text-neon-cyan shrink-0 mt-0.5" />
           <p className="text-[10px] text-neutral-400 leading-relaxed uppercase font-bold tracking-widest">
-            Donasi akan dikirim secara langsung dari pengirim ke dompet Anda. Sistem Tipfy hanya berfungsi sebagai pendeteksi transaksi on-chain untuk mengaktifkan alert dan statistik.
+            Donations are sent directly from the sender to your wallet. Tipfy's system only serves as an on-chain transaction detector to trigger alerts and statistics.
           </p>
         </div>
 
@@ -87,13 +87,13 @@ export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
             className="w-full py-4 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] italic skew-x--10 hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <span className="skew-x-10">
-              {form.state.isSubmitting ? 'Processing...' : 'Simpan Alamat Receiver'}
+              {form.state.isSubmitting ? 'Processing...' : 'Save Receiver Address'}
             </span>
           </button>
 
           {success && (
             <p className="text-center text-[10px] font-black text-green-500 uppercase animate-pulse">
-              Protocol Updated. Dompet tujuan berhasil dikonfigurasi!
+              Protocol Updated. Destination wallet configured successfully!
             </p>
           )}
         </form>

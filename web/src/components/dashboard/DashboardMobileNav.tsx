@@ -26,7 +26,7 @@ export const DashboardMobileNav = ({ items, activeTab, setActiveTab }: Dashboard
         >
           <item.icon size={20} />
           <span className="text-[8px] font-black uppercase tracking-tighter italic">
-            {item.id.replace('_', ' ')}
+            {item.label}
           </span>
         </button>
       ))}

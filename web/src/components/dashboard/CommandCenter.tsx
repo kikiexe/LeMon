@@ -35,13 +35,13 @@ export const CommandCenter = ({ user, deferredStats, deferredDonations }: Comman
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Zap size={14} className="text-neon-cyan animate-pulse" />
-            <GlitchText text="ACCOUNT_STATUS: ACTIVE" className="text-neon-cyan text-[10px] font-black tracking-[0.4em] uppercase" />
+            <GlitchText text="STATUS_AKUN: AKTIF" className="text-neon-cyan text-[10px] font-black tracking-[0.4em] uppercase" />
           </div>
           <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-none">
             Dash<span className="text-neon-pink">board</span>
           </h1>
           <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs mt-4 flex items-center gap-2">
-            <ShieldCheck size={14} /> Secure Creator Control Panel v1.0
+            <ShieldCheck size={14} /> Panel Kontrol Kreator v1.0
           </p>
         </div>
         <div className="flex gap-4">
@@ -51,7 +51,7 @@ export const CommandCenter = ({ user, deferredStats, deferredDonations }: Comman
               className="px-6 py-3 bg-white/5 border border-white/10 hover:border-neon-cyan/50 transition-all uppercase text-[10px] font-black tracking-[0.2em] flex items-center gap-2 skew-x--10"
             >
               <span className="skew-x-10 flex items-center gap-2">
-                <ExternalLink size={14} /> My Public Profile
+                <ExternalLink size={14} /> Profil Publik Saya
               </span>
             </Link>
           )}

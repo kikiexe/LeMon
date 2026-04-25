@@ -50,7 +50,6 @@ export const Route = createFileRoute('/api/donation/record')({
             .values(donationData)
             .returning()
 
-          // Real-time trigger via Ably
           try {
             const { default: Ably } = await import('ably')
             const ably = new Ably.Rest(env.ABLY_API_KEY)

@@ -3,6 +3,7 @@ import { db } from '#/db/index'
 import { donation, profile, sessions } from '#/db/schema'
 import * as cookie from 'cookie'
 import { eq } from 'drizzle-orm'
+import { env } from '#/env'
 
 export const Route = createFileRoute('/api/donation/test')({
   server: {
@@ -33,14 +34,29 @@ export const Route = createFileRoute('/api/donation/test')({
           }
 
           // Create a fake test donation
-          await db.insert(donation).values({
+          const [newDonation] = await db.insert(donation).values({
             profileId: targetProfile.id,
             senderName: 'Bagiyo',
             amount: '69',
             txHash: `TEST-${Date.now()}`,
             message: 'Halo! Ini adalah notifikasi test dari Dashboard Tipfy. 🔥',
             currency: 'MON',
-          })
+          }).returning()
+
+          // Real-time trigger via Ably
+          try {
+            const { default: Ably } = await import('ably')
+            const ably = new Ably.Rest(env.ABLY_API_KEY)
+            const channel = ably.channels.get(
+              `donations:${targetProfile.walletAddress}`,
+            )
+            await channel.publish('new-donation', newDonation)
+            console.log(
+              `[Ably] Published test donation to channel: donations:${targetProfile.walletAddress}`,
+            )
+          } catch (ablyErr) {
+            console.error('[Ably] Publish failed:', ablyErr)
+          }
 
           return new Response(JSON.stringify({ ok: true }), {
             headers: { 'Content-Type': 'application/json' }

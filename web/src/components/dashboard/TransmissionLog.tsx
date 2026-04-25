@@ -38,12 +38,12 @@ export const TransmissionLog = () => {
       >
         <div>
           <h2 className="text-4xl font-black italic uppercase tracking-tighter">Transaction_<span className="text-neon-pink">History</span></h2>
-          <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2 italic">Belum ada aktivitas transaksi yang terdeteksi.</p>
+          <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2 italic">No transaction activity detected yet.</p>
         </div>
         <div className="p-20 bg-white/2 border border-white/5 text-center space-y-4 skew-x--5">
           <div className="skew-x-5">
             <Activity size={40} className="text-neutral-800 mx-auto mb-4" />
-            <p className="text-[10px] font-black text-neutral-600 uppercase tracking-widest italic">Silent_Frequency... Menunggu dukungan pertama.</p>
+            <p className="text-[10px] font-black text-neutral-600 uppercase tracking-widest italic">Silent_Frequency... Waiting for the first support.</p>
           </div>
         </div>
       </motion.div>
@@ -58,7 +58,7 @@ export const TransmissionLog = () => {
     >
       <div>
         <h2 className="text-4xl font-black italic uppercase tracking-tighter">Transaction_<span className="text-neon-pink">History</span></h2>
-        <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2 italic">Monitoring real-time dukungan masuk</p>
+        <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2 italic">Monitoring real-time incoming support</p>
       </div>
 
       <div className="space-y-4">

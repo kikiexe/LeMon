@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { db } from '#/db/index'
 import { donation } from '#/db/schema'
 import { censorMessageServerFn } from '../../../lib/ai-utils'
-import { env } from '#/env'
 import { verifyMonadTransaction } from '#/lib/monad-utils'
 
 export const Route = createFileRoute('/api/donation/record')({

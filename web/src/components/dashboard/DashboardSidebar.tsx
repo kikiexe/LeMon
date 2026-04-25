@@ -3,6 +3,7 @@ import { QrCode, ExternalLink, Wallet, X, Download } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useAuthStore } from '#/store/auth'
 import { useBalance } from 'wagmi'
+import { formatEther } from 'viem'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
@@ -21,7 +22,17 @@ interface DashboardSidebarProps {
 }
 
 // Separate QR Modal Component with Portal
-const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, onClose: () => void, profileUrl: string, username?: string }) => {
+const QRPortal = ({
+  isOpen,
+  onClose,
+  profileUrl,
+  username,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  profileUrl: string
+  username?: string
+}) => {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
@@ -52,15 +63,15 @@ const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6">
-          <motion.div 
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 md:p-6">
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-black/95 backdrop-blur-xl"
           />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -68,8 +79,8 @@ const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, 
             className="relative w-full max-w-md bg-neutral-900 border-2 border-neon-cyan/50 shadow-[0_0_100px_rgba(0,243,255,0.2)] overflow-hidden"
           >
             {/* Cyber Header Decor */}
-            <div className="h-1 bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-purple" />
-            
+            <div className="h-1 bg-linear-to-r from-neon-pink via-neon-cyan to-neon-purple" />
+
             <div className="p-8 space-y-8">
               <div className="flex items-center justify-between">
                 <div>
@@ -80,7 +91,7 @@ const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, 
                     Direct Donation Access /u/{username}
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={onClose}
                   className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-neon-pink hover:text-black transition-all group"
                 >
@@ -90,7 +101,7 @@ const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, 
 
               {/* The "Solid" QR Area */}
               <div className="bg-white p-10 flex justify-center shadow-[0_0_30px_rgba(255,255,255,0.1)] rounded-sm">
-                <QRCodeSVG 
+                <QRCodeSVG
                   id="qr-code-modal-svg"
                   value={profileUrl}
                   size={260}
@@ -102,14 +113,14 @@ const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, 
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <button 
+                <button
                   onClick={downloadQR}
                   className="flex items-center justify-center gap-3 py-4 bg-neutral-800 hover:bg-neutral-700 text-white text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
                 >
                   <Download size={14} className="text-neon-cyan" />
                   Save_Asset
                 </button>
-                <a 
+                <a
                   href={profileUrl}
                   target="_blank"
                   rel="noreferrer"
@@ -130,7 +141,7 @@ const QRPortal = ({ isOpen, onClose, profileUrl, username }: { isOpen: boolean, 
         </div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   )
 }
 
@@ -145,11 +156,12 @@ export const DashboardSidebar = ({
     address: user?.address as `0x${string}`,
   })
 
-  const profileUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/u/${user?.slug}`
-    : `https://tipfy.io/u/${user?.slug}`
+  const profileUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/u/${user?.slug}`
+      : `https://tipfy.io/u/${user?.slug}`
 
-  const truncatedAddress = user?.address 
+  const truncatedAddress = user?.address
     ? `${user.address.slice(0, 6)}...${user.address.slice(-4)}`
     : '0x000...0000'
 
@@ -209,8 +221,12 @@ export const DashboardSidebar = ({
                 Wallet_Balance
               </p>
               <p className="text-[12px] font-black text-neon-cyan italic">
-                {balance?.formatted ? Number(balance.formatted).toFixed(4) : '0.0000'}
-                <span className="ml-1 text-[8px] font-mono opacity-70">{balance?.symbol || 'MON'}</span>
+                {balance?.value
+                  ? Number(formatEther(balance.value)).toFixed(4)
+                  : '0.0000'}
+                <span className="ml-1 text-[8px] font-mono opacity-70">
+                  {balance?.symbol || 'MON'}
+                </span>
               </p>
             </div>
           </div>
@@ -218,11 +234,11 @@ export const DashboardSidebar = ({
 
         {/* QR Code Section */}
         {user?.slug && (
-          <div 
+          <div
             onClick={() => setShowQRModal(true)}
             className="p-4 bg-white/5 border border-white/10 skew-x--5 group relative overflow-hidden cursor-pointer hover:border-neon-cyan/50 transition-all"
           >
-             <div className="absolute top-0 right-0 w-16 h-16 bg-neon-cyan/5 -mr-8 -mt-8 rotate-45 group-hover:bg-neon-cyan/10 transition-colors" />
+            <div className="absolute top-0 right-0 w-16 h-16 bg-neon-cyan/5 -mr-8 -mt-8 rotate-45 group-hover:bg-neon-cyan/10 transition-colors" />
             <div className="skew-x-5 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-[8px] font-black text-neon-cyan uppercase tracking-widest">
@@ -230,9 +246,9 @@ export const DashboardSidebar = ({
                 </p>
                 <QrCode size={12} className="text-neon-cyan animate-pulse" />
               </div>
-              
+
               <div className="p-2 flex justify-center group-hover:scale-105 transition-transform">
-                <QRCodeSVG 
+                <QRCodeSVG
                   value={profileUrl}
                   size={120}
                   level="H"
@@ -250,9 +266,9 @@ export const DashboardSidebar = ({
           </div>
         )}
 
-        <QRPortal 
-          isOpen={showQRModal} 
-          onClose={() => setShowQRModal(false)} 
+        <QRPortal
+          isOpen={showQRModal}
+          onClose={() => setShowQRModal(false)}
           profileUrl={profileUrl}
           username={user?.slug}
         />

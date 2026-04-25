@@ -17,7 +17,7 @@ import {
   Globe,
   Loader2
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
 import { useSendTransaction, useWaitForTransactionReceipt, useAccount } from 'wagmi'
 import { parseEther } from 'viem'
@@ -26,7 +26,7 @@ export const Route = createFileRoute('/u/$username')({
   loader: async ({ params }) => {
     const profile = await getPublicProfileServerFn({
       data: params.username,
-    } as any)
+    })
     if (!profile) throw notFound()
 
     const activeVoting = await (getActiveVotingServerFn as any)({
@@ -42,6 +42,7 @@ function PublicProfilePage() {
   const { profile, activeVoting } = Route.useLoaderData()
   const { isConnected, address: senderAddress } = useAccount()
   const [amount, setAmount] = useState('1')
+  const [isCustom, setIsCustom] = useState(false)
   const [message, setMessage] = useState('')
   const [votedIndex, setVotedIndex] = useState<number | null>(null)
   const [isVoting, setIsVoting] = useState(false)
@@ -89,11 +90,22 @@ function PublicProfilePage() {
     }
   }, [isConfirmed, hash, profile.username, senderAddress, amount, message])
 
+  // TipFyVault Smart Contract Address (Update this after deployment)
+  const TIPFY_VAULT_ADDRESS = '0x0000000000000000000000000000000000000000'
+
   const handleTip = async () => {
     if (!isConnected || !profile.walletAddress) return
     hasRecorded.current = false
+
+    // Smart Routing Logic
+    const targetAddress = profile.isStakingEnabled 
+      ? TIPFY_VAULT_ADDRESS 
+      : (profile.payoutAddress || profile.walletAddress)
+
+    console.log(`[Tipping] Routing to: ${targetAddress} (Staking: ${profile.isStakingEnabled})`)
+
     sendTransaction({
-      to: profile.walletAddress as `0x${string}`,
+      to: targetAddress as `0x${string}`,
       value: parseEther(amount),
     })
   }
@@ -230,24 +242,70 @@ function PublicProfilePage() {
                   <p className="text-3xl font-black italic uppercase tracking-tighter">Fuel the <span className="text-neon-cyan">Vision</span></p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                   {[1, 5, 10, 25].map((amt) => (
                     <button 
                       key={amt}
-                      onClick={() => setAmount(amt.toString())}
+                      onClick={() => {
+                        setAmount(amt.toString())
+                        setIsCustom(false)
+                      }}
                       className={`p-6 border transition-all group relative skew-x--5 ${
-                        amount === amt.toString() 
+                        !isCustom && amount === amt.toString() 
                         ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_20px_rgba(0,255,242,0.2)]' 
                         : 'bg-white/2 border-white/5 hover:border-neon-cyan/50'
                       }`}
                     >
-                      <div className="skew-x-5">
-                        <span className={`block text-2xl font-black transition-colors ${amount === amt.toString() ? 'text-neon-cyan' : 'text-white group-hover:text-neon-cyan'}`}>{amt}</span>
+                      <div className="skew-x-5 text-center">
+                        <span className={`block text-2xl font-black transition-colors ${!isCustom && amount === amt.toString() ? 'text-neon-cyan' : 'text-white group-hover:text-neon-cyan'}`}>{amt}</span>
                         <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest">MON</span>
                       </div>
                     </button>
                   ))}
+                  <button 
+                    onClick={() => {
+                      setIsCustom(true)
+                      setAmount('')
+                    }}
+                    className={`p-6 border transition-all group relative skew-x--5 ${
+                      isCustom 
+                      ? 'bg-neon-pink/10 border-neon-pink shadow-[0_0_20px_rgba(255,0,230,0.2)]' 
+                      : 'bg-white/2 border-white/5 hover:border-neon-pink/50'
+                    }`}
+                  >
+                    <div className="skew-x-5 text-center">
+                      <span className={`block text-xl font-black transition-colors ${isCustom ? 'text-neon-pink' : 'text-white group-hover:text-neon-pink'}`}>CUSTOM</span>
+                      <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest">EDIT_VAL</span>
+                    </div>
+                  </button>
                 </div>
+
+                <AnimatePresence>
+                  {isCustom && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden mb-8"
+                    >
+                      <div className="max-w-md mx-auto relative">
+                        <input 
+                          type="text"
+                          inputMode="decimal"
+                          value={amount}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9.]/g, '')
+                            if (val.split('.').length <= 2) setAmount(val)
+                          }}
+                          placeholder="ENTER_CUSTOM_AMOUNT_MON"
+                          className="w-full bg-black border border-neon-pink p-4 font-mono text-2xl text-center text-neon-pink focus:outline-none focus:shadow-[0_0_15px_rgba(255,0,230,0.3)] skew-x--10 placeholder:text-neutral-800"
+                          autoFocus
+                        />
+                        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-xs font-black text-neutral-600 skew-x-10 uppercase tracking-widest">MON</div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="space-y-6 max-w-md mx-auto">
                   <div className="relative group">

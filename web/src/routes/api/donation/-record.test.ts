@@ -53,7 +53,6 @@ describe('POST /api/donation/record', () => {
 
   it('should successfully record a donation when verification succeeds', async () => {
     const { db } = await import('#/db/index')
-    const { profile } = await import('#/db/schema')
     
     ;(db.query.profile.findFirst as any).mockResolvedValue({ id: 1, walletAddress: '0xTarget', slug: 'target' })
     ;(verifyMonadTransaction as any).mockResolvedValue({ status: 'confirmed', blockNumber: '123' })

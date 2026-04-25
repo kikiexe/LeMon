@@ -110,13 +110,18 @@ function DashboardPage() {
                 user={user} 
                 deferredStats={deferredStats} 
                 deferredDonations={deferredDonations} 
+                isStakingEnabled={(wallet as any).isStakingEnabled}
                 key="overview" 
               />
             )}
             {activeTab === 'TRANSACTIONS' && <TransmissionLog key="txs" />}
             {activeTab === 'OVERLAYS' && <SystemBridge user={user} key="overlays" />}
             {activeTab === 'SETTINGS' && (
-              <WalletSettingsView key="settings" initialAddress={wallet.payoutAddress} />
+              <WalletSettingsView 
+                key="settings" 
+                initialAddress={wallet.payoutAddress} 
+                initialStaking={(wallet as any).isStakingEnabled} 
+              />
             )}
           </AnimatePresence>
         </main>

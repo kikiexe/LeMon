@@ -2,15 +2,18 @@ import { motion } from 'framer-motion'
 import { StatCard } from './StatCard'
 import { FeedItem } from './FeedItem'
 import { GlitchText } from '../ui/GlitchText'
-import { 
-  Zap, 
-  ShieldCheck, 
-  ExternalLink, 
-  Wallet, 
-  TrendingUp, 
-  Users, 
-  Activity, 
-  Terminal as TerminalIcon 
+import {
+  Zap,
+  ShieldCheck,
+  ExternalLink,
+  Wallet,
+  TrendingUp,
+  Users,
+  Activity,
+  Terminal as TerminalIcon,
+  Lock,
+  Coins,
+  ArrowDownCircle,
 } from 'lucide-react'
 import { Link, Await } from '@tanstack/react-router'
 import { Suspense } from 'react'
@@ -19,10 +22,22 @@ interface CommandCenterProps {
   user: any
   deferredStats: any
   deferredDonations: any
+  isStakingEnabled?: boolean
 }
 
-export const CommandCenter = ({ user, deferredStats, deferredDonations }: CommandCenterProps) => {
+export const CommandCenter = ({
+  user,
+  deferredStats,
+  deferredDonations,
+  isStakingEnabled,
+}: CommandCenterProps) => {
   const chartData = [40, 70, 45, 90, 65, 80, 50, 85, 40, 60, 75, 95]
+
+  const handleWithdraw = () => {
+    alert(
+      'Withdrawal Protocol Initiated. Awaiting smart contract integration...',
+    )
+  }
 
   return (
     <motion.div
@@ -35,7 +50,14 @@ export const CommandCenter = ({ user, deferredStats, deferredDonations }: Comman
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Zap size={14} className="text-neon-cyan animate-pulse" />
-            <GlitchText text="STATUS_AKUN: AKTIF" className="text-neon-cyan text-[10px] font-black tracking-[0.4em] uppercase" />
+            <GlitchText
+              text={
+                isStakingEnabled
+                  ? 'PROTOCOL_VAULT: STAKING_ACTIVE'
+                  : 'STATUS_AKUN: AKTIF'
+              }
+              className={`${isStakingEnabled ? 'text-neon-pink' : 'text-neon-cyan'} text-[10px] font-black tracking-[0.4em] uppercase`}
+            />
           </div>
           <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-none">
             Dash<span className="text-neon-pink">board</span>
@@ -46,7 +68,7 @@ export const CommandCenter = ({ user, deferredStats, deferredDonations }: Comman
         </div>
         <div className="flex gap-4">
           {user?.slug && (
-            <Link 
+            <Link
               to={`/u/${user.slug}` as any}
               className="px-6 py-3 bg-white/5 border border-white/10 hover:border-neon-cyan/50 transition-all uppercase text-[10px] font-black tracking-[0.2em] flex items-center gap-2 skew-x--10"
             >
@@ -58,76 +80,201 @@ export const CommandCenter = ({ user, deferredStats, deferredDonations }: Comman
         </div>
       </section>
 
-      <Suspense fallback={
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-          <div className="h-32 bg-white/5 skew-x--10" />
-          <div className="h-32 bg-white/5 skew-x--10" />
-          <div className="h-32 bg-white/5 skew-x--10" />
-        </section>
-      }>
+      <Suspense
+        fallback={
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+            <div className="h-32 bg-white/5 skew-x--10" />
+            <div className="h-32 bg-white/5 skew-x--10" />
+            <div className="h-32 bg-white/5 skew-x--10" />
+          </section>
+        }
+      >
         <Await promise={deferredStats}>
           {(stats: any) => (
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard icon={<Wallet className="text-neon-cyan" />} label="Total Earnings" value={Number(stats.totalEarnings || 0).toLocaleString()} unit="MON" trend="Cumulative" />
-              <StatCard icon={<TrendingUp className="text-neon-pink" />} label="Recent Tips" value={(stats.totalDonations || 0).toString()} unit="Transactions" trend="All time" />
-              <StatCard icon={<Users className="text-white" />} label="Top Supporters" value={(stats.uniqueWallets || 0).toString()} unit="Unique Wallets" trend="Community" />
-            </section>
+            <div className="space-y-6">
+              <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard
+                  icon={<Wallet className="text-neon-cyan" />}
+                  label="Total Earnings"
+                  value={Number(stats.totalEarnings || 0).toLocaleString()}
+                  unit="MON"
+                  trend="Cumulative"
+                />
+                <StatCard
+                  icon={<TrendingUp className="text-neon-pink" />}
+                  label="Recent Tips"
+                  value={(stats.totalDonations || 0).toString()}
+                  unit="Transactions"
+                  trend="All time"
+                />
+                <StatCard
+                  icon={<Users className="text-white" />}
+                  label="Top Supporters"
+                  value={(stats.uniqueWallets || 0).toString()}
+                  unit="Unique Wallets"
+                  trend="Community"
+                />
+              </section>
+
+              {/* Vault & Staking Special Section */}
+              {isStakingEnabled && (
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 bg-neon-pink/5 border border-neon-pink/20 skew-x--5 flex flex-col md:flex-row justify-between items-center gap-8"
+                >
+                  <div className="skew-x-5 flex-1 flex flex-col md:flex-row gap-12">
+                    <div>
+                      <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <Lock size={12} className="text-neon-pink" />{' '}
+                        Vault_Balance
+                      </p>
+                      <p className="text-4xl font-black text-white italic">
+                        0.00{' '}
+                        <span className="text-xs text-neutral-500 not-italic uppercase">
+                          MON
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <Coins size={12} className="text-green-500" />{' '}
+                        Accrued_Yield (3.5%)
+                      </p>
+                      <p className="text-4xl font-black text-green-500 italic">
+                        +0.00{' '}
+                        <span className="text-xs text-neutral-500 not-italic uppercase">
+                          Yield
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-1">
+                        Time_to_Maturity
+                      </p>
+                      <p className="text-sm font-black text-white uppercase tracking-tighter">
+                        365 Days Remaining
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="skew-x-5 flex gap-4 w-full md:w-auto">
+                    <button
+                      onClick={handleWithdraw}
+                      className="flex-1 md:flex-none px-6 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-neon-pink/20 transition-all flex items-center justify-center gap-3"
+                    >
+                      <ArrowDownCircle size={16} /> Withdraw_Principal
+                    </button>
+                    <button
+                      disabled
+                      className="flex-1 md:flex-none px-6 py-4 bg-neutral-800 text-neutral-600 text-[10px] font-black uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-3"
+                    >
+                      <Zap size={16} /> Claim_Yield
+                    </button>
+                  </div>
+                </motion.section>
+              )}
+            </div>
           )}
         </Await>
       </Suspense>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8 space-y-12">
-          <div className="p-8 bg-white/[0.02] border border-white/5 relative group">
+          <div className="p-8 bg-white/2 border border-white/5 relative group">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <Activity size={18} className="text-neon-cyan" />
-                <h3 className="text-xs font-black uppercase tracking-[0.3em]">Earnings_Analysis</h3>
+                <h3 className="text-xs font-black uppercase tracking-[0.3em]">
+                  Earnings_Analysis
+                </h3>
               </div>
               <div className="flex gap-2">
                 <div className="w-2 h-2 rounded-full bg-neon-cyan animate-ping" />
-                <span className="text-[10px] font-mono text-neon-cyan uppercase">Live_Updates</span>
+                <span className="text-[10px] font-mono text-neon-cyan uppercase">
+                  Live_Updates
+                </span>
               </div>
             </div>
             <div className="h-64 flex items-end gap-2 md:gap-4 px-2">
               {chartData.map((val, i) => (
-                <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${val}%` }} transition={{ delay: i * 0.05, duration: 0.8, ease: "circOut" }} className="flex-1 bg-gradient-to-t from-neon-cyan/10 via-neon-cyan/40 to-neon-cyan relative group/bar">
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8px] font-mono text-neon-cyan opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap">VAL_{val}</div>
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${val}%` }}
+                  transition={{
+                    delay: i * 0.05,
+                    duration: 0.8,
+                    ease: 'circOut',
+                  }}
+                  className="flex-1 bg-linear-to-t from-neon-cyan/10 via-neon-cyan/40 to-neon-cyan relative group/bar"
+                >
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8px] font-mono text-neon-cyan opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap">
+                    VAL_{val}
+                  </div>
                   <div className="absolute inset-0 bg-white opacity-0 group-hover/bar:opacity-20 transition-opacity" />
                 </motion.div>
               ))}
             </div>
             <div className="flex justify-between mt-4 text-[8px] font-mono text-neutral-600 uppercase tracking-widest px-2">
-              <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span>
+              <span>00:00</span>
+              <span>06:00</span>
+              <span>12:00</span>
+              <span>18:00</span>
+              <span>23:59</span>
             </div>
           </div>
         </div>
         <div className="lg:col-span-4">
-          <div className="bg-black border border-white/5 overflow-hidden flex flex-col h-[400px]">
-            <div className="p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+          <div className="bg-black border border-white/5 overflow-hidden flex flex-col h-100">
+            <div className="p-4 border-b border-white/5 bg-white/2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TerminalIcon size={14} className="text-neon-pink" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Recent_Activity</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+                  Recent_Activity
+                </span>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono">
-              <Suspense fallback={<div className="p-4 text-[10px] uppercase animate-pulse">Syncing_Activity...</div>}>
+              <Suspense
+                fallback={
+                  <div className="p-4 text-[10px] uppercase animate-pulse">
+                    Syncing_Activity...
+                  </div>
+                }
+              >
                 <Await promise={deferredDonations}>
                   {(donations: any) => (
                     <>
-                      {donations && Array.isArray(donations) && donations.length > 0 ? (
-                        donations.slice(0, 10).map((item: any) => (
-                          <FeedItem 
-                            key={item.id} 
-                            user={item.senderName || item.senderAddress?.slice(0, 6) || 'Anon'} 
-                            msg={`${item.amount} ${item.currency}: ${item.message || 'Sent support.'}`} 
-                            type="tip" 
-                          />
-                        ))
+                      {donations &&
+                      Array.isArray(donations) &&
+                      donations.length > 0 ? (
+                        donations
+                          .slice(0, 10)
+                          .map((item: any) => (
+                            <FeedItem
+                              key={item.id}
+                              user={
+                                item.senderName ||
+                                item.senderAddress?.slice(0, 6) ||
+                                'Anon'
+                              }
+                              msg={`${item.amount} ${item.currency}: ${item.message || 'Sent support.'}`}
+                              type="tip"
+                            />
+                          ))
                       ) : (
                         <>
-                          <FeedItem user="system" msg="Connection established." type="info" />
-                          <FeedItem user="system" msg="No activity found." type="info" />
+                          <FeedItem
+                            user="system"
+                            msg="Connection established."
+                            type="info"
+                          />
+                          <FeedItem
+                            user="system"
+                            msg="No activity found."
+                            type="info"
+                          />
                         </>
                       )}
                     </>

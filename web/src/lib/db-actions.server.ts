@@ -266,7 +266,7 @@ export async function getPayoutSettings() {
   return settings || { isActive: false, payoutAddress: '' }
 }
 
-export async function updatePayoutSettings(payoutAddress: string) {
+export async function updatePayoutSettings(payoutAddress: string, isStakingEnabled?: boolean) {
   const userContext = await getSessionUser()
   if (!userContext || !userContext.profile) throw new Error('Unauthorized')
 
@@ -279,6 +279,7 @@ export async function updatePayoutSettings(payoutAddress: string) {
       .update(payoutSettings)
       .set({
         payoutAddress: payoutAddress,
+        isStakingEnabled: isStakingEnabled ?? existing.isStakingEnabled,
         isActive: payoutAddress.length === 42,
         updatedAt: new Date(),
       })
@@ -287,6 +288,7 @@ export async function updatePayoutSettings(payoutAddress: string) {
     await db.insert(payoutSettings).values({
       profileId: userContext.profile.id,
       payoutAddress: payoutAddress,
+      isStakingEnabled: isStakingEnabled ?? false,
       isActive: payoutAddress.length === 42,
     })
   }

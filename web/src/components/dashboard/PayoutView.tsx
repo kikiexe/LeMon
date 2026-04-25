@@ -1,18 +1,21 @@
 import { useForm } from '@tanstack/react-form'
 import { updatePayoutSettingsServerFn } from '../../lib/payout-utils'
-import { Wallet, ShieldCheck, Info } from 'lucide-react'
+import { Wallet, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 
-interface PayoutViewProps {
+export const PayoutView = ({
+  initialAddress,
+  initialStaking,
+}: {
   initialAddress: string
-}
-
-export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
+  initialStaking?: boolean
+}) => {
   const [success, setSuccess] = useState(false)
 
   const form = useForm({
     defaultValues: {
       payoutAddress: initialAddress || '',
+      isStakingEnabled: initialStaking || false,
     },
     onSubmit: async ({ value }) => {
       try {
@@ -26,39 +29,103 @@ export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
   })
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-12">
       <div>
-        <h2 className="text-4xl font-black italic uppercase tracking-tighter">Wallet_<span className="text-neon-cyan">Settings</span></h2>
+        <h2 className="text-4xl font-black italic uppercase tracking-tighter">
+          Protocol_<span className="text-neon-cyan">Configuration</span>
+        </h2>
         <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2">
-          Enter your destination wallet address to receive donations directly (P2P).
+          Configure how you receive transmissions (donations) from the grid.
         </p>
       </div>
 
-      <div className="p-8 bg-white/[0.02] border border-white/5 space-y-6 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <Wallet size={80} />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
+        }}
+        className="space-y-10"
+      >
+        {/* Donation Mode Selection */}
+        <div className="space-y-4">
+          <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+            <ShieldCheck size={14} className="text-neon-cyan" /> Select
+            Transmission Mode
+          </label>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form.Field
+              name="isStakingEnabled"
+              children={(field) => (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => field.handleChange(false)}
+                    className={`p-6 border text-left transition-all skew-x--5 ${!field.state.value ? 'bg-neon-cyan/10 border-neon-cyan' : 'bg-white/2 border-white/5 hover:border-white/20'}`}
+                  >
+                    <div className="skew-x-5 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span
+                          className={`text-[10px] font-black uppercase tracking-widest ${!field.state.value ? 'text-neon-cyan' : 'text-neutral-500'}`}
+                        >
+                          Direct_P2P
+                        </span>
+                        {!field.state.value && (
+                          <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                        )}
+                      </div>
+                      <p className="text-[14px] font-bold text-white uppercase italic">
+                        Immediate Settlement
+                      </p>
+                      <p className="text-[9px] text-neutral-500 leading-relaxed uppercase font-bold tracking-tight">
+                        Donations are sent directly to your wallet. Zero delay,
+                        zero yield.
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => field.handleChange(true)}
+                    className={`p-6 border text-left transition-all skew-x--5 ${field.state.value ? 'bg-neon-pink/10 border-neon-pink shadow-[0_0_20px_rgba(255,0,230,0.1)]' : 'bg-white/2 border-white/5 hover:border-white/20'}`}
+                  >
+                    <div className="skew-x-5 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span
+                          className={`text-[10px] font-black uppercase tracking-widest ${field.state.value ? 'text-neon-pink' : 'text-neutral-500'}`}
+                        >
+                          Vault_Staking
+                        </span>
+                        {field.state.value && (
+                          <div className="w-2 h-2 rounded-full bg-neon-pink animate-pulse" />
+                        )}
+                      </div>
+                      <p className="text-[14px] font-bold text-white uppercase italic">
+                        3.5% APR Yield
+                      </p>
+                      <p className="text-[9px] text-neutral-500 leading-relaxed uppercase font-bold tracking-tight">
+                        Funds are held in the secure Tipfy Vault (Aave V3). Earn
+                        rewards while you stream.
+                      </p>
+                    </div>
+                  </button>
+                </>
+              )}
+            />
+          </div>
         </div>
 
-        <div className="flex items-start gap-4 p-4 bg-neon-cyan/5 border border-neon-cyan/20">
-          <Info size={18} className="text-neon-cyan shrink-0 mt-0.5" />
-          <p className="text-[10px] text-neutral-400 leading-relaxed uppercase font-bold tracking-widest">
-            Donations are sent directly from the sender to your wallet. Tipfy's system only serves as an on-chain transaction detector to trigger alerts and statistics.
-          </p>
-        </div>
+        <div className="p-8 bg-white/2 border border-white/5 space-y-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Wallet size={80} />
+          </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
-          }}
-          className="space-y-6"
-        >
           <div className="space-y-2">
             <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-              <ShieldCheck size={14} className="text-neon-cyan" /> Receiver Wallet Address
+              Receiver Wallet Address
             </label>
-            
+
             <form.Field
               name="payoutAddress"
               children={(field) => (
@@ -68,7 +135,7 @@ export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    className={`w-full bg-black border ${field.state.meta.errors.length ? 'border-neon-pink' : 'border-white/10'} p-4 font-mono text-xs text-white focus:border-neon-cyan focus:outline-none transition-colors skew-x--5]`}
+                    className={`w-full bg-black border ${field.state.meta.errors.length ? 'border-neon-pink' : 'border-white/10'} p-4 font-mono text-xs text-white focus:border-neon-cyan focus:outline-none transition-colors skew-x--5`}
                     placeholder="0x..."
                   />
                   {field.state.meta.errors.length > 0 && (
@@ -87,17 +154,19 @@ export const PayoutView = ({ initialAddress }: PayoutViewProps) => {
             className="w-full py-4 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] italic skew-x--10 hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <span className="skew-x-10">
-              {form.state.isSubmitting ? 'Processing...' : 'Save Receiver Address'}
+              {form.state.isSubmitting
+                ? 'Syncing_Protocols...'
+                : 'Save Configuration'}
             </span>
           </button>
 
           {success && (
-            <p className="text-center text-[10px] font-black text-green-500 uppercase animate-pulse">
-              Protocol Updated. Destination wallet configured successfully!
+            <p className="text-center text-[10px] font-black text-green-500 uppercase animate-pulse mt-4">
+              Transmission protocols updated successfully!
             </p>
           )}
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   )
 }

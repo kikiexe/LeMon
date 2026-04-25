@@ -68,6 +68,7 @@ export const payoutSettings = pgTable('payout_settings', {
     .unique()
     .references(() => profile.id),
   payoutAddress: varchar('payout_address', { length: 42 }).notNull(),
+  isStakingEnabled: boolean('is_staking_enabled').default(false).notNull(),
   isActive: boolean('is_active').default(false).notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

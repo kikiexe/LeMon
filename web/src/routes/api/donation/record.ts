@@ -1,16 +1,35 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 import { db } from '#/db/index'
 import { donation } from '#/db/schema'
 import { censorMessageServerFn } from '../../../lib/ai-utils'
 import { verifyMonadTransaction } from '#/lib/monad-utils'
+
+const donationSchema = z.object({
+  slug: z.string(),
+  senderAddress: z.string(),
+  senderName: z.string().optional(),
+  amount: z.string().regex(/^\d+(\.\d+)?$/, 'Amount must be a numeric string'),
+  txHash: z.string(),
+  message: z.string().optional(),
+})
 
 export const Route = createFileRoute('/api/donation/record')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { slug, senderAddress, senderName, amount, txHash, message } =
-            await request.json()
+          const body = await request.json()
+          const validation = donationSchema.safeParse(body)
+
+          if (!validation.success) {
+            return new Response(
+              JSON.stringify({ error: 'Invalid input', details: validation.error.format() }),
+              { status: 400 },
+            )
+          }
+
+          const { slug, senderAddress, senderName, amount, txHash, message } = validation.data
 
           const targetProfile = await db.query.profile.findFirst({
             where: (p, { eq }) => eq(p.slug, slug),

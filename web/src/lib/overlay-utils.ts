@@ -83,8 +83,13 @@ export const saveOverlayConfigServerFn = createServerFn({
 export const saveVotingServerFn = createServerFn({
   method: 'POST',
 })
-  .inputValidator(z.any())
-  .handler(async ({ data }: { data: any }) => {
+  .inputValidator(z.object({
+    title: z.string(),
+    options: z.array(z.string()),
+    startDate: z.string(), // Expecting ISO string
+    endDate: z.string(),   // Expecting ISO string
+  }))
+  .handler(async ({ data }: { data: { title: string, options: string[], startDate: string, endDate: string } }) => {
     const { saveVoting } = await import('./db-actions.server')
     const res = await saveVoting(data)
     return res as any

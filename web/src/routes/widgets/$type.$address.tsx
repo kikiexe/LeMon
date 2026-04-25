@@ -28,6 +28,7 @@ function WidgetPage() {
   const [votingResults, setVotingResults] = useState<any[]>([])
   const [leaderboardData, setLeaderboardData] = useState<any[]>([])
   const [recentDonations, setRecentDonations] = useState<any[]>([])
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'failed'>('connecting')
   const ablyClientRef = useRef<Ably.Realtime | null>(null)
 
   const isProcessing = useRef(false)
@@ -72,8 +73,26 @@ function WidgetPage() {
   useEffect(() => {
     if (!address) return
 
-    const ably = new Ably.Realtime({ authUrl: '/api/auth/ably-token' })
+    const ably = new Ably.Realtime({ 
+      authUrl: '/api/auth/ably-token',
+    })
     ablyClientRef.current = ably
+
+    // Connection monitoring
+    ably.connection.on('connected', () => {
+      console.log('[Ably] Connected to the matrix.')
+      setConnectionStatus('connected')
+    })
+
+    ably.connection.on('disconnected', () => {
+      console.warn('[Ably] Disconnected. Reconnecting...')
+      setConnectionStatus('disconnected')
+    })
+
+    ably.connection.on('failed', () => {
+      console.error('[Ably] Connection failed.')
+      setConnectionStatus('failed')
+    })
 
     const channel = ably.channels.get(`donations:${address}`)
     channel.subscribe('new-donation', (message) => {
@@ -341,6 +360,18 @@ function WidgetPage() {
 
   return (
     <div className="w-screen h-screen flex items-center justify-center overflow-hidden font-sans" style={{ backgroundColor: 'transparent' }}>
+      {/* Subtle Connection Status Indicator (for streamers to troubleshoot) */}
+      <div className="fixed top-4 right-4 z-50 pointer-events-none opacity-20 hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 px-2 py-1 bg-black/50 rounded-md border border-white/10">
+          <div className={`w-2 h-2 rounded-full ${
+            connectionStatus === 'connected' ? 'bg-green-500' :
+            connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+            'bg-red-500'
+          }`} />
+          <span className="text-[10px] font-mono text-white/50 uppercase">{connectionStatus}</span>
+        </div>
+      </div>
+
       <AnimatePresence>
         {activeAlert && (
           <motion.div initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(20px)' }} className="text-center">

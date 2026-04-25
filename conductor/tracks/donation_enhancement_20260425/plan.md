@@ -12,7 +12,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Verification Logic' (27208c9)
 
 ## Phase 2: Robust Alerts
-- [ ] Task: Refactor Ably publishing logic
+- [x] Task: Refactor Ably publishing logic (6f9f6dd)
     - [ ] Move Ably publishing to a central utility in `web/src/lib/ably-utils.ts`.
     - [ ] Implement error handling and logging for publication failures.
 - [ ] Task: Update Overlays for Reliability

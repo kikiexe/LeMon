@@ -10,7 +10,7 @@ export const getPayoutSettingsServerFn = createServerFn({
 export const updatePayoutSettingsServerFn = createServerFn({
   method: 'POST',
 }).handler(async (ctx: any) => {
-  const { payoutAddress } = ctx.data as { payoutAddress: string }
+  const { payoutAddress, isStakingEnabled } = ctx.data as { payoutAddress: string, isStakingEnabled: boolean }
   const { updatePayoutSettings } = await import('./db-actions.server')
-  return await updatePayoutSettings(payoutAddress)
+  return await updatePayoutSettings(payoutAddress, isStakingEnabled)
 })

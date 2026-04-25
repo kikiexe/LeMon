@@ -10,6 +10,7 @@ import {
   jsonb,
   uuid,
 } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
 export const users = pgTable('users', {
   walletAddress: varchar('wallet_address', { length: 42 }).primaryKey(),
@@ -56,6 +57,8 @@ export const donation = pgTable('donation', {
   currency: varchar('currency', { length: 10 }).default('MON'),
   txHash: varchar('tx_hash', { length: 66 }).notNull().unique(),
   senderAddress: varchar('sender_address', { length: 42 }),
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // 'pending', 'confirmed', 'failed'
+  blockNumber: text('block_number'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -66,6 +69,7 @@ export const payoutSettings = pgTable('payout_settings', {
     .unique()
     .references(() => profile.id),
   payoutAddress: varchar('payout_address', { length: 42 }).notNull(),
+  isStakingEnabled: boolean('is_staking_enabled').default(false).notNull(),
   isActive: boolean('is_active').default(false).notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
@@ -108,3 +112,19 @@ export const votes = pgTable('votes', {
 }, (table) => [
   index('voting_voter_idx').on(table.votingId, table.voterAddress)
 ])
+
+export const profileRelations = relations(profile, ({ one, many }) => ({
+  payoutSettings: one(payoutSettings, {
+    fields: [profile.id],
+    references: [payoutSettings.profileId],
+  }),
+  donations: many(donation),
+  overlayConfigs: many(overlayConfigs),
+}))
+
+export const payoutSettingsRelations = relations(payoutSettings, ({ one }) => ({
+  profile: one(profile, {
+    fields: [payoutSettings.profileId],
+    references: [profile.id],
+  }),
+}))

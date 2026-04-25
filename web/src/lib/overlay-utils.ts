@@ -4,53 +4,50 @@ import crypto from 'node:crypto'
 
 export const getOverlayConfigServerFn = createServerFn({
   method: 'GET',
-}).handler(async (ctx: any): Promise<any> => {
-  const { type } = ctx.data as { type: string }
-  const { getOverlayConfig } = await import('./db-actions.server')
-  return await getOverlayConfig(type)
-})
+}).handler(async ({ data: { type } }) => {
+    const { getOverlayConfig } = await import('./db-actions.server')
+    return await getOverlayConfig(type)
+  })
 
 export const getPublicOverlayConfigServerFn = createServerFn({
   method: 'GET',
-}).handler(async (ctx: any): Promise<any> => {
-  const { type, address } = ctx.data as { type: string; address: string }
-  const { db } = await import('#/db/index')
-  const { overlayConfigs, profile } = await import('#/db/schema')
+}).handler(async ({ data: { type, address } }) => {
+    const { db } = await import('#/db/index')
+    const { overlayConfigs, profile } = await import('#/db/schema')
 
-  const userProfile = await db.query.profile.findFirst({
-    where: eq(profile.walletAddress, address),
+    const userProfile = await db.query.profile.findFirst({
+      where: eq(profile.walletAddress, address),
+    })
+    if (!userProfile) throw new Error('Profile not found')
+
+    const config = await db.query.overlayConfigs.findFirst({
+      where: and(
+        eq(overlayConfigs.profileId, userProfile.id),
+        eq(overlayConfigs.type, type.toUpperCase()),
+      ),
+    })
+
+    return config || null
   })
-  if (!userProfile) throw new Error('Profile not found')
-
-  const config = await db.query.overlayConfigs.findFirst({
-    where: and(
-      eq(overlayConfigs.profileId, userProfile.id),
-      eq(overlayConfigs.type, type.toUpperCase()),
-    ),
-  })
-
-  return config || null
-})
 
 export const getLatestDonationServerFn = createServerFn({
   method: 'GET',
-}).handler(async (ctx: any): Promise<any> => {
-  const { address } = ctx.data as { address: string }
-  const { db } = await import('#/db/index')
-  const { donation, profile } = await import('#/db/schema')
+}).handler(async ({ data: { address } }) => {
+    const { db } = await import('#/db/index')
+    const { donation, profile } = await import('#/db/schema')
 
-  const userProfile = await db.query.profile.findFirst({
-    where: eq(profile.walletAddress, address),
+    const userProfile = await db.query.profile.findFirst({
+      where: eq(profile.walletAddress, address),
+    })
+    if (!userProfile) return null
+
+    const latest = await db.query.donation.findFirst({
+      where: eq(donation.profileId, userProfile.id),
+      orderBy: [desc(donation.createdAt)],
+    })
+
+    return latest || null
   })
-  if (!userProfile) return null
-
-  const latest = await db.query.donation.findFirst({
-    where: eq(donation.profileId, userProfile.id),
-    orderBy: [desc(donation.createdAt)],
-  })
-
-  return latest || null
-})
 
 export const getDonationsServerFn = createServerFn({ method: 'GET' }).handler(
   async (): Promise<any[]> => {
@@ -68,54 +65,45 @@ export const getDashboardStatsServerFn = createServerFn({
 
 export const saveOverlayConfigServerFn = createServerFn({
   method: 'POST',
-}).handler(async (ctx: any): Promise<any> => {
-  const { type, config, isEnabled } = ctx.data as { type: string; config: any; isEnabled?: boolean }
-  const { saveOverlayConfig } = await import('./db-actions.server')
-  return await saveOverlayConfig(type, config, isEnabled)
-})
+}).handler(async ({ data: { type, config, isEnabled } }) => {
+    const { saveOverlayConfig } = await import('./db-actions.server')
+    return await saveOverlayConfig(type, config, isEnabled)
+  })
 
 export const saveVotingServerFn = createServerFn({
   method: 'POST',
-}).handler(async (ctx: any): Promise<any> => {
-  const { saveVoting } = await import('./db-actions.server')
-  return await saveVoting(ctx.data)
-})
+}).handler(async ({ data }) => {
+    const { saveVoting } = await import('./db-actions.server')
+    return await saveVoting(data)
+  })
 
 export const getActiveVotingServerFn = createServerFn({
   method: 'GET',
-}).handler(async (ctx: any): Promise<any> => {
-  const { profileId } = ctx.data as { profileId: number }
-  const { getActiveVoting } = await import('./db-actions.server')
-  return await getActiveVoting(profileId)
-})
+}).handler(async ({ data: { profileId } }) => {
+    const { getActiveVoting } = await import('./db-actions.server')
+    return await getActiveVoting(profileId)
+  })
 
 export const submitVoteServerFn = createServerFn({
   method: 'POST',
-}).handler(async (ctx: any): Promise<any> => {
-  const { votingId, optionIndex, voterAddress } = ctx.data as { votingId: number, optionIndex: number, voterAddress: string }
-  const { submitVote } = await import('./db-actions.server')
-  return await submitVote(votingId, optionIndex, voterAddress)
-})
+}).handler(async ({ data: { votingId, optionIndex, voterAddress } }) => {
+    const { submitVote } = await import('./db-actions.server')
+    return await submitVote(votingId, optionIndex, voterAddress)
+  })
 
 export const getVotingResultsServerFn = createServerFn({
   method: 'GET',
-}).handler(async (ctx: any): Promise<any> => {
-  const { votingId } = ctx.data as { votingId: number }
-  const { getVotingResults } = await import('./db-actions.server')
-  return await getVotingResults(votingId)
-})
+}).handler(async ({ data: { votingId } }) => {
+    const { getVotingResults } = await import('./db-actions.server')
+    return await getVotingResults(votingId)
+  })
 
 export const getLeaderboardServerFn = createServerFn({
   method: 'GET',
-}).handler(async (ctx: any): Promise<any> => {
-  const { profileId, timeRange, startDate } = ctx.data as {
-    profileId: number
-    timeRange: string
-    startDate?: string
-  }
-  const { getLeaderboardData } = await import('./db-actions.server')
-  return await getLeaderboardData(profileId, timeRange, startDate)
-})
+}).handler(async ({ data: { profileId, timeRange, startDate } }) => {
+    const { getLeaderboardData } = await import('./db-actions.server')
+    return await getLeaderboardData(profileId, timeRange, startDate)
+  })
 
 export const uploadToBucketServerFn = createServerFn({
   method: 'POST',

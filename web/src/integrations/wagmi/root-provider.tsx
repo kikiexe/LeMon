@@ -1,5 +1,5 @@
 import { WagmiProvider, createConfig, http } from 'wagmi'
-import { mainnet, monadTestnet } from 'wagmi/chains'
+import { monadTestnet } from 'wagmi/chains'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
 import { useEffect  } from 'react'
 import type {ReactNode} from 'react';

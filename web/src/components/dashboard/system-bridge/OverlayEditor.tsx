@@ -9,7 +9,6 @@ import {
   Activity,
   Play,
   Trash2,
-  UploadCloud,
   Frown,
   Coins,
   CreditCard,
@@ -41,7 +40,6 @@ export const OverlayEditor = ({
   const [loading, setLoading] = useState(true)
   const [saveStatus, setSaveStatus] = useState<string | null>(null)
   const [showSimulator, setShowSimulator] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [simulatorKey, setSimulatorKey] = useState(0)
   const [testingAlert, setTestingAlert] = useState(false)
@@ -114,8 +112,12 @@ export const OverlayEditor = ({
         if (type === 'VOTING') {
           const { startDate, startTime, endDate, endTime, title, options } =
             config
-          await saveVotingServerFn({
-            data: { startDate, startTime, endDate, endTime, title, options },
+          
+          const startISO = new Date(`${startDate}T${startTime || '00:00:00'}`).toISOString()
+          const endISO = new Date(`${endDate}T${endTime || '23:59:59'}`).toISOString()
+
+          await (saveVotingServerFn as any)({
+            data: { startDate: startISO, endDate: endISO, title, options },
           })
         }
 
@@ -154,7 +156,6 @@ export const OverlayEditor = ({
     const file = e.target.files?.[0]
     if (!file) return
 
-    setUploading(true)
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -174,7 +175,6 @@ export const OverlayEditor = ({
       console.error('Upload failed:', err)
       alert('Gagal mengupload file ke storage. Silakan coba lagi.')
     } finally {
-      setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }

@@ -80,6 +80,7 @@ contract TipFyVault is Ownable, ReentrancyGuard {
     constructor(address _aavePool, address _wmon) Ownable(msg.sender) {
         aavePool = IPool(_aavePool);
         wmon = IWETH(_wmon);
+        wmon.approve(address(aavePool), type(uint256).max);
     }
 
     // =========================================================
@@ -122,7 +123,6 @@ contract TipFyVault is Ownable, ReentrancyGuard {
             wmon.deposit{value: streamerShare}();
             
             // Supply to Aave
-            wmon.approve(address(aavePool), streamerShare);
             aavePool.supply(address(wmon), streamerShare, address(this), 0);
 
             // Update balances & timestamp with pro-rata accrual

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { WalletAuth } from './WalletAuth'
 import { ProfileModal } from './ProfileModal'
-import { LayoutDashboard, Home, User } from 'lucide-react'
+import { LayoutDashboard, Home, User, Zap } from 'lucide-react'
 import { useAuthStore } from '../../store/auth'
 import { useUIStore } from '../../store/ui'
 
@@ -11,38 +11,47 @@ export const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-100 w-full border-b border-white/5 bg-black/60 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="group flex items-center gap-3">
-            <div className="w-10 h-10 bg-neon-cyan flex items-center justify-center skew-x--10 glow-cyan transition-transform group-hover:scale-110">
-              <span className="text-black font-black text-xl skew-x-10">T</span>
+      <nav className="sticky top-0 z-100 w-full border-b border-[var(--border)] bg-[var(--surface-1)]/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
+          {/* Logo */}
+          <Link to="/" className="group flex items-center gap-2.5 shrink-0">
+            <div className="w-8 h-8 bg-[var(--cyan)] flex items-center justify-center rounded-[3px] transition-all group-hover:shadow-[0_0_16px_rgba(0,245,255,0.4)]">
+              <Zap size={16} fill="#000" stroke="none" />
             </div>
-            <span className="text-2xl font-black tracking-tighter italic uppercase group-hover:text-neon-cyan transition-colors">
-              Tip<span className="text-neon-pink group-hover:text-white">fy</span>
+            <span className="font-display text-xl tracking-wider text-[var(--text-primary)] group-hover:text-[var(--cyan)] transition-colors">
+              TIP<span className="text-[var(--pink)]">FY</span>
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-8 ml-12 flex-1">
+          {/* Nav links */}
+          <div className="hidden lg:flex items-center gap-1 flex-1">
             <NavLink to="/" icon={<Home size={14} />} label="Explore" />
             {user && (
               <NavLink to="/dashboard" icon={<LayoutDashboard size={14} />} label="Dashboard" />
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            {/* Live indicator */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)]">
+              <span className="dot-live" />
+              <span className="font-mono text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">Monad</span>
+            </div>
+
             {user && (
-              <button 
+              <button
                 onClick={() => setShowProfile(true)}
-                className="p-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/50 hover:bg-neon-cyan/5 transition-all group"
+                className="w-8 h-8 flex items-center justify-center rounded-md border border-[var(--border-strong)] bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--cyan)] hover:border-[rgba(0,245,255,0.3)] transition-all"
               >
-                <User size={20} className="text-neutral-400 group-hover:text-neon-cyan" />
+                <User size={15} />
               </button>
             )}
             <WalletAuth />
           </div>
         </div>
       </nav>
-      
+
       <ProfileModal />
     </>
   )
@@ -50,11 +59,12 @@ export const Navbar = () => {
 
 function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
   return (
-    <Link 
-      to={to} 
-      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 hover:text-neon-cyan transition-all [&.active]:text-neon-cyan"
+    <Link
+      to={to}
+      className="nav-link [&.active]:active"
     >
-      {icon} {label}
+      {icon}
+      <span>{label}</span>
     </Link>
   )
 }

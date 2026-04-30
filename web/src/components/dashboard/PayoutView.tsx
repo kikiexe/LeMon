@@ -1,11 +1,11 @@
 import { useForm } from '@tanstack/react-form'
 import { updatePayoutSettingsServerFn } from '../../lib/payout-utils'
-import { Wallet, ShieldCheck, Loader2 } from 'lucide-react'
+import { Wallet, ShieldCheck, Loader2, Zap, Lock, Check, ArrowRight, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { TipFyVaultABI, TIPFY_VAULT_ADDRESS } from '../../lib/TipFyVaultABI'
-
-// Address is now imported from TipFyVaultABI.ts
+import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '../ui/Button'
 
 export const PayoutView = ({
   initialAddress,
@@ -25,7 +25,6 @@ export const PayoutView = ({
     },
     onSubmit: async ({ value }) => {
       try {
-        // 1. Update Smart Contract if status changed
         if (value.isStakingEnabled !== initialStaking) {
           writeContract({
             address: TIPFY_VAULT_ADDRESS,
@@ -34,7 +33,6 @@ export const PayoutView = ({
             args: [value.isStakingEnabled],
           })
         }
-
         await (updatePayoutSettingsServerFn as any)({ data: value })
         setSuccess(true)
         setTimeout(() => setSuccess(false), 3000)
@@ -44,146 +42,234 @@ export const PayoutView = ({
     },
   })
 
+  const isLoading = form.state.isSubmitting || isTxPending || isConfirming
+
   return (
-    <div className="max-w-2xl space-y-12">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-2xl space-y-8"
+    >
+      {/* Header */}
       <div>
-        <h2 className="text-4xl font-black italic uppercase tracking-tighter">
-          Protocol_<span className="text-neon-cyan">Configuration</span>
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-secondary)' }}>
+          Settings
+        </p>
+        <h2 className="font-display text-5xl" style={{ color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+          PAYOUT<br />
+          <span style={{ color: 'var(--cyan)' }}>CONFIG</span>
         </h2>
-        <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2">
-          Configure how you receive transmissions (donations) from the grid.
+        <p className="mt-3 text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+          Pilih bagaimana kamu ingin menerima donasi — langsung ke wallet atau via Vault dengan yield.
         </p>
       </div>
 
       <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          form.handleSubmit()
-        }}
-        className="space-y-10"
+        onSubmit={e => { e.preventDefault(); e.stopPropagation(); form.handleSubmit() }}
+        className="space-y-6"
       >
-        {/* Donation Mode Selection */}
-        <div className="space-y-4">
-          <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-            <ShieldCheck size={14} className="text-neon-cyan" /> Select
-            Transmission Mode
-          </label>
+        {/* ── Mode Selection ── */}
+        <div
+          style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            overflow: 'hidden',
+          }}
+        >
+          <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-3)' }}>
+            <ShieldCheck size={14} style={{ color: 'var(--cyan)' }} />
+            <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
+              Donation Mode
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-5">
             <form.Field
               name="isStakingEnabled"
-              children={(field) => (
-                <>
+              children={(field: any) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Direct P2P */}
                   <button
                     type="button"
                     onClick={() => field.handleChange(false)}
-                    className={`p-6 border text-left transition-all skew-x--5 ${!field.state.value ? 'bg-neon-cyan/10 border-neon-cyan' : 'bg-white/2 border-white/5 hover:border-white/20'}`}
+                    className="p-5 rounded-xl text-left transition-all"
+                    style={{
+                      background: !field.state.value ? 'rgba(0,245,255,0.05)' : 'var(--surface-3)',
+                      border: `1px solid ${!field.state.value ? 'rgba(0,245,255,0.2)' : 'var(--border)'}`,
+                    }}
                   >
-                    <div className="skew-x-5 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span
-                          className={`text-[10px] font-black uppercase tracking-widest ${!field.state.value ? 'text-neon-cyan' : 'text-neutral-500'}`}
-                        >
-                          Direct_P2P
-                        </span>
-                        {!field.state.value && (
-                          <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
-                        )}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div
+                        className="w-9 h-9 flex items-center justify-center rounded-lg"
+                        style={{
+                          background: !field.state.value ? 'rgba(0,245,255,0.1)' : 'var(--surface-4)',
+                          border: `1px solid ${!field.state.value ? 'rgba(0,245,255,0.2)' : 'var(--border)'}`,
+                        }}
+                      >
+                        <Zap size={16} style={{ color: !field.state.value ? 'var(--cyan)' : 'var(--text-muted)' }} />
                       </div>
-                      <p className="text-[14px] font-bold text-white uppercase italic">
-                        Immediate Settlement
-                      </p>
-                      <p className="text-[9px] text-neutral-500 leading-relaxed uppercase font-bold tracking-tight">
-                        Donations are sent directly to your wallet. Zero delay,
-                        zero yield.
-                      </p>
+                      {!field.state.value && (
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ background: 'var(--cyan)' }}>
+                          <Check size={11} color="#000" />
+                        </div>
+                      )}
                     </div>
+
+                    <div className="font-display text-lg mb-1" style={{
+                      color: !field.state.value ? 'var(--cyan)' : 'var(--text-primary)',
+                      letterSpacing: '0.03em',
+                    }}>
+                      DIRECT P2P
+                    </div>
+                    <div className="text-xs font-semibold mb-2" style={{
+                      color: !field.state.value ? 'var(--cyan)' : 'var(--text-secondary)',
+                    }}>
+                      Immediate Settlement
+                    </div>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                      Donasi langsung masuk ke wallet. Tidak ada delay, tidak ada yield.
+                    </p>
                   </button>
 
+                  {/* Vault Staking */}
                   <button
                     type="button"
                     onClick={() => field.handleChange(true)}
-                    className={`p-6 border text-left transition-all skew-x--5 ${field.state.value ? 'bg-neon-pink/10 border-neon-pink shadow-[0_0_20px_rgba(255,0,230,0.1)]' : 'bg-white/2 border-white/5 hover:border-white/20'}`}
+                    className="p-5 rounded-xl text-left transition-all"
+                    style={{
+                      background: field.state.value ? 'rgba(255,45,120,0.05)' : 'var(--surface-3)',
+                      border: `1px solid ${field.state.value ? 'rgba(255,45,120,0.2)' : 'var(--border)'}`,
+                    }}
                   >
-                    <div className="skew-x-5 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span
-                          className={`text-[10px] font-black uppercase tracking-widest ${field.state.value ? 'text-neon-pink' : 'text-neutral-500'}`}
-                        >
-                          Vault_Staking
-                        </span>
-                        {field.state.value && (
-                          <div className="w-2 h-2 rounded-full bg-neon-pink animate-pulse" />
-                        )}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div
+                        className="w-9 h-9 flex items-center justify-center rounded-lg"
+                        style={{
+                          background: field.state.value ? 'rgba(255,45,120,0.1)' : 'var(--surface-4)',
+                          border: `1px solid ${field.state.value ? 'rgba(255,45,120,0.2)' : 'var(--border)'}`,
+                        }}
+                      >
+                        <Lock size={16} style={{ color: field.state.value ? 'var(--pink)' : 'var(--text-muted)' }} />
                       </div>
-                      <p className="text-[14px] font-bold text-white uppercase italic">
-                        3.5% APR Yield
-                      </p>
-                      <p className="text-[9px] text-neutral-500 leading-relaxed uppercase font-bold tracking-tight">
-                        Funds are held in the secure Tipfy Vault (Aave V3). Earn
-                        rewards while you stream.
-                      </p>
+                      {field.state.value && (
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ background: 'var(--pink)' }}>
+                          <Check size={11} color="#fff" />
+                        </div>
+                      )}
                     </div>
+
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="font-display text-lg" style={{
+                        color: field.state.value ? 'var(--pink)' : 'var(--text-primary)',
+                        letterSpacing: '0.03em',
+                      }}>
+                        VAULT STAKING
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold mb-2"
+                      style={{ color: field.state.value ? '#00ff80' : 'var(--text-secondary)' }}>
+                      <TrendingUp size={11} />
+                      3.5% APR Yield
+                    </div>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                      Dana disimpan di TipFy Vault (Aave V3). Kamu earn yield selama streaming.
+                    </p>
                   </button>
-                </>
+                </div>
               )}
             />
           </div>
         </div>
 
-        <div className="p-8 bg-white/2 border border-white/5 space-y-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-            <Wallet size={80} />
+        {/* ── Wallet Address ── */}
+        <div
+          style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            overflow: 'hidden',
+          }}
+        >
+          <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-3)' }}>
+            <Wallet size={14} style={{ color: 'var(--cyan)' }} />
+            <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
+              Receiver Wallet
+            </span>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-              Receiver Wallet Address
-            </label>
-
+          <div className="p-5 space-y-4">
             <form.Field
               name="payoutAddress"
-              children={(field) => (
-                <>
+              children={(field: any) => (
+                <div className="space-y-2">
+                  <label className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                    Wallet Address
+                  </label>
                   <input
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    className={`w-full bg-black border ${field.state.meta.errors.length ? 'border-neon-pink' : 'border-white/10'} p-4 font-mono text-xs text-white focus:border-neon-cyan focus:outline-none transition-colors skew-x--5`}
+                    onChange={e => field.handleChange(e.target.value)}
+                    className="input"
                     placeholder="0x..."
+                    style={{
+                      borderColor: field.state.meta.errors?.length
+                        ? 'rgba(255,45,120,0.4)'
+                        : 'var(--border-strong)',
+                    }}
                   />
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-[8px] font-bold text-neon-pink uppercase mt-2 tracking-widest">
+                  {field.state.meta.errors?.length > 0 && (
+                    <p className="font-mono text-xs" style={{ color: 'var(--pink)' }}>
                       {field.state.meta.errors.join(', ')}
                     </p>
                   )}
-                </>
+                  <p className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    Donasi akan dikirim ke alamat ini. Pastikan kamu memiliki akses ke wallet tersebut.
+                  </p>
+                </div>
               )}
             />
+
+            {/* Save button */}
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center items-center gap-2"
+              style={{ padding: '13px', fontSize: '13px', borderRadius: 8 }}
+            >
+              {isLoading ? (
+                <><Loader2 size={15} className="animate-spin" /> Saving...</>
+              ) : success ? (
+                <><Check size={15} /> Saved!</>
+              ) : (
+                <>Save Configuration <ArrowRight size={15} /></>
+              )}
+            </Button>
+
+            <AnimatePresence>
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2 px-4 py-3 rounded-lg"
+                  style={{ background: 'rgba(0,255,128,0.06)', border: '1px solid rgba(0,255,128,0.15)' }}
+                >
+                  <Check size={14} style={{ color: '#00ff80' }} />
+                  <span className="font-mono text-xs" style={{ color: '#00ff80' }}>
+                    Configuration updated successfully.
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-
-          <button
-            type="submit"
-            disabled={form.state.isSubmitting || isTxPending || isConfirming}
-            className="w-full py-4 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] italic skew-x--10 hover:bg-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            <span className="skew-x-10 flex items-center gap-2">
-              {(form.state.isSubmitting || isTxPending || isConfirming) && <Loader2 className="animate-spin" size={16} />}
-              {form.state.isSubmitting || isTxPending || isConfirming
-                ? 'Syncing_Protocols...'
-                : 'Save Configuration'}
-            </span>
-          </button>
-
-          {success && (
-            <p className="text-center text-[10px] font-black text-green-500 uppercase animate-pulse mt-4">
-              Transmission protocols updated successfully!
-            </p>
-          )}
         </div>
       </form>
-    </div>
+    </motion.div>
   )
 }
